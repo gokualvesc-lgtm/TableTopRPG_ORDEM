@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mesa 3D — Ordem</title>
+<style>
+:root{color-scheme:dark;--bg:#0a0a0c;--pn:#141418;--ln:#2a2a33;--tx:#e8e6e1;--mu:#8d8a85;--ac:#c1272d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0a0a0c;--pn:#141418}}
+:root[data-theme="dark"]{--bg:#0a0a0c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+#app{display:flex;height:100%}
+#stage{flex:1;position:relative;min-width:0}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+#hint{position:absolute;left:12px;bottom:12px;color:var(--mu);font-size:12px;pointer-events:none}
+#camera-controls{position:absolute;top:12px;right:12px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(10,10,12,.72);backdrop-filter:blur(6px)}
+#camera-controls .cam-pad{display:grid;grid-template-columns:repeat(3,34px);grid-template-rows:repeat(2,32px);gap:3px}
+#camera-controls button{min-width:34px;height:32px;padding:2px 6px;background:rgba(35,35,42,.9);font-weight:700}
+#camera-controls .cam-empty{visibility:hidden}
+#camera-controls .cam-tools{display:flex;gap:4px}
+#camera-controls #cam-mode{width:100%;font-size:11px}
+#camera-controls #cam-mode.on{border-color:var(--ac);color:#fff;background:var(--ac)}
+#side{width:340px;background:var(--pn);border-left:1px solid var(--ln);display:flex;flex-direction:column;min-height:0}
+#tabs{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--ln);flex-wrap:wrap}
+#tabs button.on{border-color:var(--ac);color:var(--ac)}
+.row button.on{border-color:var(--ac);color:#fff;background:var(--ac)}
+#pane{overflow-y:auto;padding:12px;flex:1}
+h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ac);margin:16px 0 8px}
+h2:first-child{margin-top:0}
+button,input,select,textarea{font:inherit;color:var(--tx);background:#1d1d23;border:1px solid var(--ln);border-radius:6px;padding:5px 8px}
+button{cursor:pointer}button:hover{border-color:var(--ac)}
+textarea{width:100%;box-sizing:border-box;margin:6px 0;resize:vertical}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+input[type=number]{width:56px}input[type=text]{flex:1;min-width:80px}input[type=color]{padding:0;width:34px;height:30px}
+.tok{border:1px solid var(--ln);border-radius:8px;padding:8px;margin-bottom:8px;cursor:pointer}
+.tok.sel{border-color:var(--ac)}
+.tok input[data-f=tokenName]{width:120px;min-width:0;padding:3px 5px}
+.player-card{border:1px solid var(--ln);border-radius:10px;padding:12px;margin:10px 0;background:#101014}
+.player-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.player-header h3{margin:0 0 6px;font-size:16px}
+.player-avatar{width:72px;height:88px;object-fit:cover;border-radius:8px;border:1px solid var(--ln);flex:none}
+.player-avatar-empty{display:grid;place-items:center;background:var(--avatar-color);font-size:30px;font-weight:700}
+.player-stats{display:flex;flex-wrap:wrap;gap:6px}
+.player-stats span{padding:3px 6px;border-radius:5px;background:#1d1d23;font-size:12px}
+.player-card h4{margin:12px 0 5px;color:var(--ac);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.player-card textarea{min-height:64px}
+.player-description{white-space:pre-wrap;margin:4px 0;color:var(--tx)}
+.inventory-list{list-style:none;padding:0;margin:4px 0}
+.inventory-list li{display:flex;align-items:center;gap:5px;margin:5px 0}
+.inventory-list input[type=text]{min-width:0}
+.inventory-list input[type=number]{width:58px}
+.player-sheet{margin:6px 0}
+.sheet-upload{display:block;color:var(--mu);margin:8px 0}
+.sheet-upload input{display:block;max-width:100%;margin-top:5px}
+.nm{display:flex;justify-content:space-between;align-items:center;font-weight:600;margin-bottom:4px;gap:6px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.st{display:flex;align-items:center;gap:4px;margin:3px 0;font-size:13px}
+.st b{width:34px;color:var(--mu)}.st span{width:52px;text-align:center}.st button{padding:1px 8px}
+.mu{color:var(--mu)}
+.gal{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.th{border:1px solid var(--ln);border-radius:8px;padding:6px}
+.th img{width:100%;height:80px;object-fit:cover;border-radius:4px}
+.th small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0}
+.th button{padding:2px 6px;font-size:12px}
+#log div{padding:4px 0;border-bottom:1px solid var(--ln);font-size:13px}
+#log em{color:var(--ac);font-style:normal;font-weight:700}
+details{border:1px solid var(--ln);border-radius:8px;padding:8px;margin-bottom:8px}
+details div{white-space:pre-wrap;margin-top:6px}
+@media (max-width:760px){#app{flex-direction:column}#side{width:auto;height:48%;border-left:0;border-top:1px solid var(--ln)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <canvas id="c"></canvas>
+    <div id="camera-controls" aria-label="Controles da câmera">
+      <div class="cam-pad">
+        <span class="cam-empty"></span><button data-cam="up" aria-label="Mover câmera para cima" title="Mover para cima">▲</button><span class="cam-empty"></span>
+        <button data-cam="left" aria-label="Mover câmera para a esquerda" title="Mover para a esquerda">◀</button><button data-cam="home" aria-label="Centralizar câmera" title="Centralizar">⌂</button><button data-cam="right" aria-label="Mover câmera para a direita" title="Mover para a direita">▶</button>
+      </div>
+      <div class="cam-tools"><button data-cam="zoom-out" aria-label="Diminuir zoom" title="Diminuir zoom">−</button><button data-cam="down" aria-label="Mover câmera para baixo" title="Mover para baixo">▼</button><button data-cam="zoom-in" aria-label="Aumentar zoom" title="Aumentar zoom">+</button></div>
+      <button id="cam-mode" data-cam="mode" aria-pressed="false">Arrastar: girar</button>
+    </div>
+    <div id="hint"></div>
+  </div>
+  <aside id="side"><div id="tabs"></div><div id="pane"></div></aside>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
