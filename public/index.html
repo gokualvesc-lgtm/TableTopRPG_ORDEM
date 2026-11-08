@@ -6,12 +6,13 @@
 <title>Mesa 3D — Ordem</title>
 <style>
 :root{color-scheme:dark;--bg:#0a0a0c;--pn:#141418;--ln:#2a2a33;--tx:#e8e6e1;--mu:#8d8a85;--ac:#c1272d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:border-box}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0a0a0c;--pn:#141418}}
 :root[data-theme="dark"]{--bg:#0a0a0c}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
-#app{display:flex;height:100%;position:relative}
-#stage{flex:1;position:relative;min-width:0}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+#app{display:flex;height:100%;height:100dvh;position:relative;min-height:0;overflow:hidden}
+#stage{flex:1 1 0%;position:relative;min-width:0;min-height:0;overflow:hidden}
 canvas{display:block;width:100%;height:100%;touch-action:none}
 #hint{position:absolute;left:12px;bottom:12px;color:var(--mu);font-size:12px;pointer-events:none}
 #camera-controls{position:absolute;top:12px;right:12px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(10,10,12,.72);backdrop-filter:blur(6px)}
@@ -28,8 +29,9 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 #camera-controls #cam-mode.on{border-color:var(--ac);color:#fff;background:var(--ac)}
 #side{width:340px;flex:0 0 340px;background:var(--pn);border-left:1px solid var(--ln);display:flex;flex-direction:column;min-height:0}
 #app.side-collapsed #side{display:none}
-#side-toggle{position:absolute;z-index:5;right:340px;top:50%;transform:translateY(-50%);width:28px;height:54px;padding:4px 2px;border-radius:6px 0 0 6px;background:var(--pn);font-size:18px}
+#side-toggle{position:absolute;z-index:5;right:340px;top:50%;transform:translateY(-50%);width:34px;height:54px;padding:4px 2px;border-radius:6px 0 0 6px;background:var(--pn);font-size:18px}
 #app.side-collapsed #side-toggle{right:0}
+#side-toggle-label{display:none}
 #tabs{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--ln);flex-wrap:wrap}
 #tabs button.on{border-color:var(--ac);color:var(--ac)}
 .row button.on{border-color:var(--ac);color:#fff;background:var(--ac)}
@@ -75,7 +77,7 @@ input[type=number]{width:56px}input[type=text]{flex:1;min-width:80px}input[type=
 #log em{color:var(--ac);font-style:normal;font-weight:700}
 details{border:1px solid var(--ln);border-radius:8px;padding:8px;margin-bottom:8px}
 details div{white-space:pre-wrap;margin-top:6px}
-@media (max-width:760px){#app{flex-direction:column}#side{width:auto;height:48%;flex:0 0 48%;border-left:0;border-top:1px solid var(--ln)}#side-toggle{top:52%;right:8px;left:auto;transform:translateY(-50%);border-radius:6px}#app.side-collapsed #side-toggle{top:auto;right:auto;bottom:10px;left:10px;transform:none}#camera-controls{top:auto;bottom:12px;right:10px;padding:7px;gap:5px}#camera-controls .cam-pad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,42px);gap:4px}#camera-controls button{min-width:42px;height:40px;padding:4px 8px}#camera-controls .cam-tools button{min-width:42px}#camera-controls #cam-mode{min-height:36px;font-size:12px}#camera-controls .cam-altitude button{font-size:12px}#hint{max-width:calc(100% - 190px);font-size:11px}}
+@media (max-width:760px){#app{flex-direction:column}#stage{flex:1 1 0%;width:100%}#side{width:100%;height:44%;max-height:50%;flex:0 0 44%;min-height:0;border-left:0;border-top:1px solid var(--ln)}#tabs{padding-left:144px}#side-toggle,#app.side-collapsed #side-toggle{top:56%;right:auto;left:10px;bottom:auto;transform:none;width:auto;min-width:126px;height:40px;padding:6px 12px;border:1px solid var(--ln);border-radius:8px;background:#1d1d23;box-shadow:0 2px 12px rgba(0,0,0,.45);font-size:13px;font-weight:600}#side-toggle-label{display:inline}#app.side-collapsed #side-toggle{top:auto;bottom:10px;left:10px}#camera-controls{top:auto;bottom:12px;right:10px;padding:7px;gap:5px}#camera-controls .cam-pad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,42px);gap:4px}#camera-controls button{min-width:42px;height:40px;padding:4px 8px}#camera-controls .cam-tools button{min-width:42px}#camera-controls #cam-mode{min-height:36px;font-size:12px}#camera-controls .cam-altitude button{font-size:12px}#hint{max-width:calc(100% - 190px);font-size:11px}}
 </style>
 </head>
 <body>
@@ -94,7 +96,7 @@ details div{white-space:pre-wrap;margin-top:6px}
     <div id="hint"></div>
   </div>
   <aside id="side"><div id="tabs"></div><div id="pane"></div></aside>
-  <button id="side-toggle" type="button" aria-controls="side" aria-expanded="true" aria-label="Fechar opções" title="Fechar opções">‹</button>
+  <button id="side-toggle" type="button" aria-controls="side" aria-expanded="true" aria-label="Fechar opções" title="Fechar opções"><span id="side-toggle-icon" aria-hidden="true">‹</span><span id="side-toggle-label">Fechar opções</span></button>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
